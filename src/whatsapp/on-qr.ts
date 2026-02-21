@@ -1,5 +1,5 @@
 import qrcode from 'qrcode-terminal';
-import { setQR } from './qr-server';
+import { setQR } from './http-server';
 
 export function onQr(qr: string): void {
   setQR(qr);

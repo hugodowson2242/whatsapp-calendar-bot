@@ -30,7 +30,7 @@ export async function executor(ctx: ExecutorContext): Promise<ExecutorResult> {
   const { document_id, text } = ctx.toolUse.input as AppendDocInput;
 
   try {
-    await appendToDoc(document_id, text);
+    await appendToDoc(ctx.google.docs, document_id, text);
 
     return {
       success: true,

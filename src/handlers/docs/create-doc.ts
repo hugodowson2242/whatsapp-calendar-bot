@@ -30,7 +30,7 @@ export async function executor(ctx: ExecutorContext): Promise<ExecutorResult> {
   const { title, content } = ctx.toolUse.input as CreateDocInput;
 
   try {
-    const doc = await createDoc(title, content);
+    const doc = await createDoc(ctx.google.docs, title, content);
     const confirmation = `📝 Document created!\n\n*${doc.title}*\n\n${doc.url}`;
 
     return {

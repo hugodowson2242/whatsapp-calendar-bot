@@ -3,8 +3,11 @@ import { chat, extractToolUse, extractText } from '../claude/client';
 import { conversationStore } from '../claude/conversation-store';
 import { EXECUTORS } from '../handlers/registry';
 import { config } from '../config';
+import { getRefreshToken } from '../google/token-store';
+import { createGoogleClients } from '../google/auth';
 
 const MAX_TOOL_CALLS = 10;
+const PORT = parseInt(process.env.PORT || '3001', 10);
 
 export async function onMessage(
   message: pkg.Message,
@@ -15,6 +18,16 @@ export async function onMessage(
 
   const chatId = message.id.remote;
   const userText = message.body.slice(config.triggerPrefix.length);
+
+  const refreshToken = getRefreshToken(chatId);
+  if (!refreshToken) {
+    const phone = chatId.replace('@c.us', '');
+    const authUrl = `http://localhost:${PORT}/auth?phone=${encodeURIComponent(phone)}`;
+    await sendMessage(chatId, `Please authenticate your Google account first:\n${authUrl}`);
+    return;
+  }
+
+  const google = createGoogleClients(refreshToken);
 
   try {
     conversationStore.append(chatId, { role: 'user', content: userText });
@@ -43,7 +56,7 @@ export async function onMessage(
       }
 
       toolCalls++;
-      const result = await executor({ toolUse, chatId });
+      const result = await executor({ toolUse, chatId, google });
 
       if (result.userMessage) {
         await sendMessage(chatId, result.userMessage);

@@ -30,7 +30,7 @@ export async function executor(ctx: ExecutorContext): Promise<ExecutorResult> {
   const { document_id, content } = ctx.toolUse.input as ReplaceDocInput;
 
   try {
-    await replaceDocContent(document_id, content);
+    await replaceDocContent(ctx.google.docs, document_id, content);
 
     return {
       success: true,
