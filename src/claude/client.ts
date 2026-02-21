@@ -1,0 +1,65 @@
+import Anthropic from '@anthropic-ai/sdk';
+import type { MessageParam, Message } from '@anthropic-ai/sdk/resources/messages';
+import { TOOLS } from '../handlers/registry';
+
+const client = new Anthropic();
+
+const SYSTEM_PROMPT = `You are a personal assistant that helps users manage Google Calendar, Google Docs, and fetch web content through WhatsApp.
+
+Your capabilities:
+- Calendar: Create events, query upcoming events
+- Docs: Create documents, read documents, append to documents, replace document content, search documents
+- Web: Fetch content from URLs (web pages, APIs, etc.)
+
+For calendar events, you need:
+- Event title/description
+- Start date and time
+- Duration (default to 60 minutes if not specified)
+
+For docs operations:
+- To read, append, or replace, you need a document ID (the long string in a Google Docs URL)
+- To search, use keywords from the document content or title
+- To create, you need at least a title
+
+For fetching URLs:
+- You can fetch any public HTTP/HTTPS URL
+- HTML content will be converted to plain text
+- Use this when users ask about web content or provide URLs
+
+Today's date is: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+Current time: ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+
+Be concise in your responses. This is WhatsApp, not email.`;
+
+export interface ToolUseResult {
+  id: string;
+  name: string;
+  input: unknown;
+}
+
+export async function chat(messages: MessageParam[]): Promise<Message> {
+  return client.messages.create({
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 1024,
+    system: SYSTEM_PROMPT,
+    tools: TOOLS,
+    messages
+  });
+}
+
+export function extractToolUse(response: Message): ToolUseResult | null {
+  const toolUseBlock = response.content.find(block => block.type === 'tool_use');
+  if (toolUseBlock && toolUseBlock.type === 'tool_use') {
+    return {
+      id: toolUseBlock.id,
+      name: toolUseBlock.name,
+      input: toolUseBlock.input
+    };
+  }
+  return null;
+}
+
+export function extractText(response: Message): string {
+  const textBlock = response.content.find(block => block.type === 'text');
+  return textBlock && textBlock.type === 'text' ? textBlock.text : '';
+}
