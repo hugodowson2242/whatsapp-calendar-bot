@@ -42,7 +42,6 @@ Fill in:
 - `ANTHROPIC_API_KEY` - Your Claude API key
 - `GOOGLE_CLIENT_ID` - From Google Cloud Console
 - `GOOGLE_CLIENT_SECRET` - From Google Cloud Console
-- `GOOGLE_REFRESH_TOKEN` - From auth helper script
 
 Optional:
 - `TRIGGER_PREFIX` - Message prefix to trigger the bot (default: `:?`)
@@ -92,19 +91,15 @@ Prefix messages with `:?` (or your configured trigger):
 ```
 (Bot searches docs, then reads the found document)
 
-## Multi-user Calendar Mapping
+## Multi-user Authentication
 
-To route different WhatsApp users to different calendars, create a `calendar-map.json`:
+Each WhatsApp user authenticates with their own Google account. When a user first messages the bot, they receive a link to complete Google OAuth. Their refresh token and calendar preference are stored in a local SQLite database (`bot.db`).
 
-```json
-{
-  "default": "primary",
-  "441234567890": "work@group.calendar.google.com",
-  "449876543210": "personal@group.calendar.google.com"
-}
+To migrate from the legacy `tokens.json` and `calendar-map.json` files:
+
+```bash
+npx tsx scripts/migrate-json-to-sqlite.ts
 ```
-
-Keys are phone numbers (without `+`), values are Google Calendar IDs.
 
 ## Architecture
 
