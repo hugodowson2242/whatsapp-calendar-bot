@@ -3,7 +3,7 @@ import { generateAuthUrl, exchangeCodeForToken } from '../google/oauth-flow';
 import { onMessage } from './on-message';
 import { sendWhatsAppMessage } from './cloud-api';
 
-const PORT = parseInt(process.env.PORT || '3001', 10);
+const PORT = parseInt(process.env.PORT || '3000', 10);
 
 export function startHttpServer(): void {
   const server = http.createServer(async (req, res) => {
@@ -26,7 +26,7 @@ export function startHttpServer(): void {
     }
   });
 
-  server.listen(PORT, () => {
+  server.listen(PORT, '0.0.0.0', () => {
     const baseUrl = process.env.BASE_URL || `http://localhost:${PORT}`;
     console.log(`Server listening on ${baseUrl}`);
   });
