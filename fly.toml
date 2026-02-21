@@ -1,0 +1,22 @@
+app = "whatsapp-calendar-bot"
+primary_region = "lhr"
+
+[build]
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = false
+  auto_start_machines = true
+
+[mounts]
+  source = "data"
+  destination = "/data"
+
+[env]
+  DATA_DIR = "/data"
+  PORT = "3000"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
