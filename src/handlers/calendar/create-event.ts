@@ -42,7 +42,7 @@ export async function executor(ctx: ExecutorContext): Promise<ExecutorResult> {
 
   try {
     const calendarId = getCalendarId(ctx.chatId);
-    const eventLink = await createEvent(title, start_time, duration_minutes, description, calendarId);
+    const eventLink = await createEvent(ctx.google.calendar, title, start_time, duration_minutes, description, calendarId);
 
     const startDate = new Date(start_time);
     const confirmation = `✅ Event created!\n\n*${title}*\n${startDate.toLocaleString()}\n${duration_minutes} minutes\n\n${eventLink}`;

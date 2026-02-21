@@ -1,4 +1,5 @@
 import type { Tool } from '@anthropic-ai/sdk/resources/messages';
+import type { GoogleClients } from '../google/auth';
 
 export interface ToolUse {
   id: string;
@@ -9,6 +10,7 @@ export interface ToolUse {
 export interface ExecutorContext {
   toolUse: ToolUse;
   chatId: string;
+  google: GoogleClients;
 }
 
 export interface ExecutorResult {

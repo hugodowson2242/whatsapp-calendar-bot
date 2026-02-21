@@ -32,7 +32,7 @@ export async function executor(ctx: ExecutorContext): Promise<ExecutorResult> {
 
   try {
     const calendarId = getCalendarId(ctx.chatId);
-    const events = await listEvents(start_date, end_date, calendarId);
+    const events = await listEvents(ctx.google.calendar, start_date, end_date, calendarId);
 
     return {
       success: true,

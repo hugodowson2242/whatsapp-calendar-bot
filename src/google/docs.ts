@@ -1,4 +1,4 @@
-import { docs, drive } from './auth';
+import type { docs_v1, drive_v3 } from 'googleapis';
 import { ApiError } from '../errors';
 
 export interface DocInfo {
@@ -19,7 +19,7 @@ export interface SearchResult {
   url: string;
 }
 
-export async function createDoc(title: string, content?: string): Promise<DocInfo> {
+export async function createDoc(docs: docs_v1.Docs, title: string, content?: string): Promise<DocInfo> {
   try {
     const response = await docs.documents.create({
       requestBody: { title }
@@ -52,7 +52,7 @@ export async function createDoc(title: string, content?: string): Promise<DocInf
   }
 }
 
-export async function readDoc(documentId: string): Promise<DocContent> {
+export async function readDoc(docs: docs_v1.Docs, documentId: string): Promise<DocContent> {
   try {
     const response = await docs.documents.get({ documentId });
     const doc = response.data;
@@ -84,7 +84,7 @@ export async function readDoc(documentId: string): Promise<DocContent> {
   }
 }
 
-export async function appendToDoc(documentId: string, text: string): Promise<void> {
+export async function appendToDoc(docs: docs_v1.Docs, documentId: string, text: string): Promise<void> {
   try {
     const response = await docs.documents.get({ documentId });
     const doc = response.data;
@@ -117,7 +117,7 @@ export async function appendToDoc(documentId: string, text: string): Promise<voi
   }
 }
 
-export async function replaceDocContent(documentId: string, newContent: string): Promise<void> {
+export async function replaceDocContent(docs: docs_v1.Docs, documentId: string, newContent: string): Promise<void> {
   try {
     const response = await docs.documents.get({ documentId });
     const doc = response.data;
@@ -163,7 +163,7 @@ export async function replaceDocContent(documentId: string, newContent: string):
   }
 }
 
-export async function searchDocs(query: string): Promise<SearchResult[]> {
+export async function searchDocs(drive: drive_v3.Drive, query: string): Promise<SearchResult[]> {
   try {
     const response = await drive.files.list({
       q: `mimeType='application/vnd.google-apps.document' and fullText contains '${query.replace(/'/g, "\\'")}'`,

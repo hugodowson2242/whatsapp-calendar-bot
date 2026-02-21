@@ -1,4 +1,4 @@
-import { calendar } from './auth';
+import type { calendar_v3 } from 'googleapis';
 import { ApiError } from '../errors';
 
 export interface CalendarEvent {
@@ -9,6 +9,7 @@ export interface CalendarEvent {
 }
 
 export async function listEvents(
+  calendar: calendar_v3.Calendar,
   timeMin: string,
   timeMax: string,
   calendarId = 'primary'
@@ -35,6 +36,7 @@ export async function listEvents(
 }
 
 export async function createEvent(
+  calendar: calendar_v3.Calendar,
   title: string,
   startTime: string,
   durationMinutes = 60,

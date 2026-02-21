@@ -1,4 +1,4 @@
-import { setReady } from './qr-server';
+import { setReady } from './http-server';
 
 export function onReady(): void {
   setReady();

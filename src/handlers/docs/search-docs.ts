@@ -25,7 +25,7 @@ export async function executor(ctx: ExecutorContext): Promise<ExecutorResult> {
   const { query } = ctx.toolUse.input as SearchDocsInput;
 
   try {
-    const results = await searchDocs(query);
+    const results = await searchDocs(ctx.google.drive, query);
 
     return {
       success: true,

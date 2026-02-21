@@ -1,14 +1,14 @@
 import 'dotenv/config';
 import pkg from 'whatsapp-web.js';
 const { Client, LocalAuth } = pkg;
-import { startServer } from './whatsapp/qr-server';
+import { startHttpServer } from './whatsapp/http-server';
 import { loadCalendarMap } from './google/calendar-map';
 import { onQr } from './whatsapp/on-qr';
 import { onReady } from './whatsapp/on-ready';
 import { onMessage } from './whatsapp/on-message';
 
 loadCalendarMap();
-startServer();
+startHttpServer();
 
 const client = new Client({
   authStrategy: new LocalAuth(),

@@ -25,7 +25,7 @@ export async function executor(ctx: ExecutorContext): Promise<ExecutorResult> {
   const { document_id } = ctx.toolUse.input as ReadDocInput;
 
   try {
-    const doc = await readDoc(document_id);
+    const doc = await readDoc(ctx.google.docs, document_id);
 
     return {
       success: true,
