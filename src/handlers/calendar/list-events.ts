@@ -1,7 +1,7 @@
 import type { Tool } from '@anthropic-ai/sdk/resources/messages';
 import type { ExecutorContext, ExecutorResult } from '../types';
 import { listEvents } from '../../google/calendar';
-import { getCalendarId } from '../../google/calendar-map';
+import { getCalendarId } from '../../google/user-store';
 
 export interface ListEventsInput {
   start_date: string;

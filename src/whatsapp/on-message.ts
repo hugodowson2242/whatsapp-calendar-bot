@@ -3,7 +3,7 @@ import { chat, extractToolUse, extractText } from '../claude/client';
 import { conversationStore } from '../claude/conversation-store';
 import { EXECUTORS } from '../handlers/registry';
 import { config } from '../config';
-import { getRefreshToken } from '../google/token-store';
+import { getRefreshToken } from '../google/user-store';
 import { createGoogleClients } from '../google/auth';
 
 const MAX_TOOL_CALLS = 10;
