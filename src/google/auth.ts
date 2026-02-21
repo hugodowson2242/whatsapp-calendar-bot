@@ -7,6 +7,13 @@ export interface GoogleClients {
 }
 
 export function createGoogleClients(refreshToken: string): GoogleClients {
+  console.log('[Auth] Creating Google clients', {
+    hasClientId: !!process.env.GOOGLE_CLIENT_ID,
+    hasClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
+    hasRefreshToken: !!refreshToken,
+    refreshTokenPrefix: refreshToken?.slice(0, 10) + '...',
+  });
+
   const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET

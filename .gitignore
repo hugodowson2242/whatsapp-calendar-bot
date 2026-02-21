@@ -6,3 +6,5 @@ dist/
 calendar-map.json
 tokens.json
 *.db
+*.db-shm
+*.db-wal

@@ -25,3 +25,8 @@ export function getCalendarId(phoneNumber: string): string {
   const row = db.prepare('SELECT calendar_id FROM users WHERE phone_number = ?').get(phone) as { calendar_id: string } | undefined;
   return row?.calendar_id ?? 'primary';
 }
+
+export function clearRefreshToken(phoneNumber: string): void {
+  const phone = stripPhone(phoneNumber);
+  db.prepare('DELETE FROM users WHERE phone_number = ?').run(phone);
+}

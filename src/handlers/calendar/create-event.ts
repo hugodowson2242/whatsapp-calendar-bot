@@ -2,6 +2,7 @@ import type { Tool } from '@anthropic-ai/sdk/resources/messages';
 import type { ExecutorContext, ExecutorResult } from '../types';
 import { createEvent } from '../../google/calendar';
 import { getCalendarId } from '../../google/user-store';
+import { isInvalidGrantError } from '../../errors';
 
 export interface CreateEventInput {
   title: string;
@@ -53,6 +54,9 @@ export async function executor(ctx: ExecutorContext): Promise<ExecutorResult> {
       userMessage: confirmation
     };
   } catch (error) {
+    if (isInvalidGrantError(error)) {
+      throw error; // Re-throw auth errors for main handler
+    }
     const message = error instanceof Error ? error.message : 'Unknown error';
     return {
       success: false,
