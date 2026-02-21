@@ -7,7 +7,15 @@ import { createGoogleClients } from '../google/auth';
 import { isInvalidGrantError } from '../errors';
 
 const MAX_TOOL_CALLS = 10;
-const PORT = parseInt(process.env.PORT || '3001', 10);
+
+function getAuthUrl(phone: string): string {
+  const baseUrl = process.env.BASE_URL;
+  if (baseUrl) {
+    return `${baseUrl}/auth?phone=${encodeURIComponent(phone)}`;
+  }
+  const port = parseInt(process.env.PORT || '3001', 10);
+  return `http://localhost:${port}/auth?phone=${encodeURIComponent(phone)}`;
+}
 
 export interface CloudMessage {
   from: string;
@@ -25,8 +33,7 @@ export async function onMessage(
 
   const refreshToken = getRefreshToken(chatId);
   if (!refreshToken) {
-    const authUrl = `http://localhost:${PORT}/auth?phone=${encodeURIComponent(chatId)}`;
-    await sendMessage(chatId, `Please authenticate your Google account first:\n${authUrl}`);
+    await sendMessage(chatId, `Please authenticate your Google account first:\n${getAuthUrl(chatId)}`);
     return;
   }
 
@@ -94,8 +101,7 @@ export async function onMessage(
 
     if (isInvalidGrantError(error)) {
       clearRefreshToken(chatId);
-      const authUrl = `http://localhost:${PORT}/auth?phone=${encodeURIComponent(chatId)}`;
-      await sendMessage(chatId, `Your Google authentication has expired. Please re-authenticate:\n${authUrl}`);
+      await sendMessage(chatId, `Your Google authentication has expired. Please re-authenticate:\n${getAuthUrl(chatId)}`);
       return;
     }
 

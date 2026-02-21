@@ -17,6 +17,9 @@ export function startHttpServer(): void {
       handleAuth(url, res);
     } else if (url.pathname === '/auth/callback') {
       await handleAuthCallback(url, res);
+    } else if (url.pathname === '/health') {
+      res.writeHead(200, { 'Content-Type': 'text/plain' });
+      res.end('OK');
     } else {
       res.writeHead(404);
       res.end();
@@ -24,7 +27,8 @@ export function startHttpServer(): void {
   });
 
   server.listen(PORT, () => {
-    console.log(`Server listening on http://localhost:${PORT}`);
+    const baseUrl = process.env.BASE_URL || `http://localhost:${PORT}`;
+    console.log(`Server listening on ${baseUrl}`);
   });
 }
 

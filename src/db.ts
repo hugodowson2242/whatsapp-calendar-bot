@@ -1,8 +1,15 @@
 import Database, { type Database as DatabaseType } from 'better-sqlite3';
 import { join } from 'path';
+import { mkdirSync, existsSync } from 'fs';
 import { randomUUID } from 'crypto';
 
-const DB_PATH = join(process.cwd(), 'bot.db');
+const DATA_DIR = process.env.DATA_DIR || './data';
+
+if (!existsSync(DATA_DIR)) {
+  mkdirSync(DATA_DIR, { recursive: true });
+}
+
+const DB_PATH = join(DATA_DIR, 'bot.db');
 
 const db: DatabaseType = new Database(DB_PATH);
 

@@ -7,14 +7,20 @@ const SCOPES = [
   'https://www.googleapis.com/auth/drive.readonly',
 ];
 
-const PORT = parseInt(process.env.PORT || '3001', 10);
-const REDIRECT_URI = `http://localhost:${PORT}/auth/callback`;
+function getRedirectUri(): string {
+  const baseUrl = process.env.BASE_URL;
+  if (baseUrl) {
+    return `${baseUrl}/auth/callback`;
+  }
+  const port = parseInt(process.env.PORT || '3001', 10);
+  return `http://localhost:${port}/auth/callback`;
+}
 
 function createOAuth2Client() {
   return new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    REDIRECT_URI
+    getRedirectUri()
   );
 }
 
