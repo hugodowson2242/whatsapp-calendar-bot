@@ -52,7 +52,6 @@ Fill in:
 - `WHATSAPP_WEBHOOK_VERIFY_TOKEN` - Any secret string you choose
 
 Optional:
-- `TRIGGER_PREFIX` - Message prefix to trigger the bot (default: `:?`)
 - `PORT` - Server port (default: `3001`)
 
 ### 5. Expose localhost with ngrok
@@ -82,32 +81,32 @@ The server starts on `http://localhost:3001`. First message from a user triggers
 
 ## Usage
 
-Prefix messages with `:?` (or your configured trigger):
+Just message the bot naturally:
 
 **Calendar:**
 ```
-:?Meeting with John tomorrow at 3pm for 1 hour
-:?What's on my calendar tomorrow?
-:?Do I have anything scheduled this weekend?
+Meeting with John tomorrow at 3pm for 1 hour
+What's on my calendar tomorrow?
+Do I have anything scheduled this weekend?
 ```
 
 **Docs:**
 ```
-:?Create a new doc called "Meeting Notes"
-:?Search my docs for "project plan"
-:?What's in this doc: 1BxG...abc (document ID)
-:?Add "Action item: follow up" to doc 1BxG...abc
+Create a new doc called "Meeting Notes"
+Search my docs for "project plan"
+What's in this doc: 1BxG...abc (document ID)
+Add "Action item: follow up" to doc 1BxG...abc
 ```
 
 **Web:**
 ```
-:?Summarize this article: https://example.com/article
-:?What's on the homepage of news.ycombinator.com?
+Summarize this article: https://example.com/article
+What's on the homepage of news.ycombinator.com?
 ```
 
 **Chained operations:**
 ```
-:?Find my doc about the Q1 budget and tell me the total
+Find my doc about the Q1 budget and tell me the total
 ```
 (Bot searches docs, then reads the found document)
 
@@ -145,7 +144,6 @@ This allows Claude to chain multiple tools sequentially to complete complex task
 ```
 src/
 ├── index.ts              # Entry point
-├── config.ts             # Configuration
 ├── db.ts                 # SQLite database
 ├── errors.ts             # Error types
 ├── claude/

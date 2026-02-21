@@ -1,7 +1,6 @@
 import { chat, extractToolUse, extractText } from '../claude/client';
 import { conversationStore } from '../claude/conversation-store';
 import { EXECUTORS } from '../handlers/registry';
-import { config } from '../config';
 import { getRefreshToken, clearRefreshToken } from '../google/user-store';
 import { createGoogleClients } from '../google/auth';
 import { isInvalidGrantError } from '../errors';
@@ -26,10 +25,8 @@ export async function onMessage(
   message: CloudMessage,
   sendMessage: (chatId: string, text: string) => Promise<unknown>
 ): Promise<void> {
-  if (!message.body.startsWith(config.triggerPrefix)) return;
-
   const chatId = message.from;
-  const userText = message.body.slice(config.triggerPrefix.length);
+  const userText = message.body;
 
   const refreshToken = getRefreshToken(chatId);
   if (!refreshToken) {
