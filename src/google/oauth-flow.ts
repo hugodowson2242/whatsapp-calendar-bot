@@ -1,5 +1,5 @@
 import { google } from 'googleapis';
-import { saveRefreshToken } from './token-store';
+import { saveRefreshToken } from './user-store';
 
 const SCOPES = [
   'https://www.googleapis.com/auth/calendar.events',

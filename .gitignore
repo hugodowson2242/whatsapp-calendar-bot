@@ -5,3 +5,4 @@ dist/
 .wwebjs_cache/
 calendar-map.json
 tokens.json
+*.db
