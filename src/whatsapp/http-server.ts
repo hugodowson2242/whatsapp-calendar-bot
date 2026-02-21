@@ -1,33 +1,24 @@
 import http from 'http';
-import QRCode from 'qrcode';
 import { generateAuthUrl, exchangeCodeForToken } from '../google/oauth-flow';
+import { onMessage } from './on-message';
+import { sendWhatsAppMessage } from './cloud-api';
 
 const PORT = parseInt(process.env.PORT || '3001', 10);
-
-let currentQR: string | null = null;
-let isReady = false;
-
-export function setQR(qr: string): void {
-  currentQR = qr;
-}
-
-export function setReady(): void {
-  isReady = true;
-  currentQR = null;
-}
 
 export function startHttpServer(): void {
   const server = http.createServer(async (req, res) => {
     const url = new URL(req.url || '/', `http://localhost:${PORT}`);
 
-    if (url.pathname === '/qr') {
-      await handleQr(res);
+    if (url.pathname === '/webhook' && req.method === 'GET') {
+      handleWebhookVerification(url, res);
+    } else if (url.pathname === '/webhook' && req.method === 'POST') {
+      handleWebhookMessage(req, res);
     } else if (url.pathname === '/auth') {
       handleAuth(url, res);
     } else if (url.pathname === '/auth/callback') {
       await handleAuthCallback(url, res);
     } else {
-      res.writeHead(302, { Location: '/qr' });
+      res.writeHead(404);
       res.end();
     }
   });
@@ -37,34 +28,44 @@ export function startHttpServer(): void {
   });
 }
 
-async function handleQr(res: http.ServerResponse): Promise<void> {
-  if (isReady) {
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end('<h1>Already authenticated</h1><p>WhatsApp client is connected.</p>');
-    return;
+function handleWebhookVerification(url: URL, res: http.ServerResponse): void {
+  const mode = url.searchParams.get('hub.mode');
+  const token = url.searchParams.get('hub.verify_token');
+  const challenge = url.searchParams.get('hub.challenge');
+
+  if (mode === 'subscribe' && token === process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN) {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end(challenge);
+  } else {
+    res.writeHead(403);
+    res.end('Forbidden');
   }
-  if (!currentQR) {
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end('<h1>Waiting for QR code...</h1><p>Refresh in a few seconds.</p>');
-    return;
-  }
-  try {
-    const qrImage = await QRCode.toDataURL(currentQR);
-    res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(`
-      <html>
-        <head><title>WhatsApp QR</title></head>
-        <body style="display:flex;justify-content:center;align-items:center;height:100vh;margin:0;flex-direction:column;">
-          <h1>Scan with WhatsApp</h1>
-          <img src="${qrImage}" style="width:300px;height:300px;" />
-          <p>Settings > Linked Devices > Link a Device</p>
-        </body>
-      </html>
-    `);
-  } catch {
-    res.writeHead(500);
-    res.end('Error generating QR');
-  }
+}
+
+function handleWebhookMessage(req: http.IncomingMessage, res: http.ServerResponse): void {
+  // Respond immediately — Meta retries if no 200 within 5 seconds
+  res.writeHead(200);
+  res.end();
+
+  let rawBody = '';
+  req.on('data', (chunk: Buffer) => { rawBody += chunk; });
+  req.on('end', () => {
+    try {
+      const payload = JSON.parse(rawBody);
+      const messages = payload?.entry?.[0]?.changes?.[0]?.value?.messages;
+      if (!Array.isArray(messages)) return;
+
+      for (const msg of messages) {
+        if (msg.type !== 'text') continue;
+        onMessage(
+          { from: msg.from, body: msg.text.body },
+          sendWhatsAppMessage
+        ).catch(err => console.error('onMessage error:', err));
+      }
+    } catch (err) {
+      console.error('Webhook parse error:', err);
+    }
+  });
 }
 
 function handleAuth(url: URL, res: http.ServerResponse): void {
