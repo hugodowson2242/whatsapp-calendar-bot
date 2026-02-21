@@ -24,3 +24,9 @@ export class ApiError extends Error {
 export function isApiError(error: unknown): error is ApiError {
   return error instanceof ApiError;
 }
+
+export function isInvalidGrantError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const message = (error as Error).message || '';
+  return message.includes('invalid_grant');
+}

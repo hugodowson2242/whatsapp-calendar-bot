@@ -2,8 +2,9 @@ import { chat, extractToolUse, extractText } from '../claude/client';
 import { conversationStore } from '../claude/conversation-store';
 import { EXECUTORS } from '../handlers/registry';
 import { config } from '../config';
-import { getRefreshToken } from '../google/user-store';
+import { getRefreshToken, clearRefreshToken } from '../google/user-store';
 import { createGoogleClients } from '../google/auth';
+import { isInvalidGrantError } from '../errors';
 
 const MAX_TOOL_CALLS = 10;
 const PORT = parseInt(process.env.PORT || '3001', 10);
@@ -90,6 +91,14 @@ export async function onMessage(
     }
   } catch (error) {
     console.error('Error processing message:', error);
+
+    if (isInvalidGrantError(error)) {
+      clearRefreshToken(chatId);
+      const authUrl = `http://localhost:${PORT}/auth?phone=${encodeURIComponent(chatId)}`;
+      await sendMessage(chatId, `Your Google authentication has expired. Please re-authenticate:\n${authUrl}`);
+      return;
+    }
+
     await sendMessage(chatId, 'Something went wrong. Please try again.');
   }
 }

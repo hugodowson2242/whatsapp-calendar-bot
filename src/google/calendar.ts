@@ -63,6 +63,8 @@ export async function createEvent(
     }
   };
 
+  console.log('[Calendar] Creating event:', { title, startTime, calendarId });
+
   try {
     const response = await calendar.events.insert({
       calendarId,
@@ -71,6 +73,12 @@ export async function createEvent(
 
     return response.data.htmlLink || '';
   } catch (error) {
+    console.error('[Calendar] createEvent failed:', {
+      error,
+      status: (error as any).status,
+      code: (error as any).code,
+      errors: (error as any).errors,
+    });
     const message = error instanceof Error ? error.message : 'Unknown error';
     throw new ApiError(`Failed to create event: ${message}`, 'CREATE_FAILED', 'calendar');
   }

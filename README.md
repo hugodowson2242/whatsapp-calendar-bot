@@ -9,7 +9,7 @@ A WhatsApp bot that manages Google Calendar, Google Docs, and fetches web conten
 - **Web**: Fetch and summarize content from URLs
 - **Agentic**: Supports sequential tool chaining (e.g., search docs → read the result)
 
-## Setup
+## Local Development
 
 ### 1. Install dependencies
 
@@ -25,14 +25,19 @@ npm install
    - Google Calendar API
    - Google Docs API
    - Google Drive API
-4. Create OAuth 2.0 credentials (Desktop app)
-5. Run the auth helper to get a refresh token:
+4. Create OAuth 2.0 credentials (Web application)
+5. Add `http://localhost:3001/auth/callback` to Authorized redirect URIs
 
-```bash
-npx tsx scripts/get-refresh-token.ts
-```
+### 3. WhatsApp Cloud API Setup
 
-### 3. Configure environment
+1. Go to [Meta Developer Portal](https://developers.facebook.com)
+2. Create a new app (type: Business)
+3. Add WhatsApp product to your app
+4. In WhatsApp > API Setup, note your:
+   - Phone number ID
+   - Temporary access token (or create a permanent one)
+
+### 4. Configure environment
 
 ```bash
 cp .env.example .env
@@ -42,23 +47,38 @@ Fill in:
 - `ANTHROPIC_API_KEY` - Your Claude API key
 - `GOOGLE_CLIENT_ID` - From Google Cloud Console
 - `GOOGLE_CLIENT_SECRET` - From Google Cloud Console
+- `WHATSAPP_PHONE_NUMBER_ID` - From Meta Developer Portal
+- `WHATSAPP_ACCESS_TOKEN` - From Meta Developer Portal
+- `WHATSAPP_WEBHOOK_VERIFY_TOKEN` - Any secret string you choose
 
 Optional:
 - `TRIGGER_PREFIX` - Message prefix to trigger the bot (default: `:?`)
+- `PORT` - Server port (default: `3001`)
 
-### 4. Run
+### 5. Expose localhost with ngrok
+
+WhatsApp Cloud API requires a public HTTPS URL for webhooks:
 
 ```bash
-npm start
+ngrok http 3001
 ```
 
-For development with auto-reload:
+Copy the `https://` forwarding URL.
+
+### 6. Configure WhatsApp Webhook
+
+In Meta Developer Portal > WhatsApp > Configuration:
+1. Set Callback URL to: `https://<your-ngrok-url>/webhook`
+2. Set Verify token to your `WHATSAPP_WEBHOOK_VERIFY_TOKEN`
+3. Subscribe to `messages` webhook field
+
+### 7. Run
 
 ```bash
 npm run dev
 ```
 
-Scan the QR code with WhatsApp (Settings → Linked Devices → Link a Device).
+The server starts on `http://localhost:3001`. First message from a user triggers Google OAuth.
 
 ## Usage
 
@@ -126,31 +146,27 @@ This allows Claude to chain multiple tools sequentially to complete complex task
 src/
 ├── index.ts              # Entry point
 ├── config.ts             # Configuration
-├── qr-server.ts          # QR code web server
-├── calendar/
-│   ├── client.ts         # Google Calendar API
-│   ├── errors.ts         # Typed errors
-│   └── map.ts            # User → Calendar mapping
+├── db.ts                 # SQLite database
+├── errors.ts             # Error types
 ├── claude/
 │   ├── client.ts         # Anthropic API, tools, system prompt
 │   └── conversation-store.ts
-├── docs/
-│   ├── client.ts         # Google Docs/Drive API
-│   └── errors.ts         # Typed errors
-├── events/
-│   ├── qr.ts             # QR code event
-│   ├── ready.ts          # Ready event
-│   └── message.ts        # Message handling + agentic loop
+├── google/
+│   ├── auth.ts           # OAuth2 client creation
+│   ├── calendar.ts       # Google Calendar API
+│   ├── docs.ts           # Google Docs/Drive API
+│   ├── oauth-flow.ts     # OAuth flow helpers
+│   └── user-store.ts     # User token storage
+├── whatsapp/
+│   ├── cloud-api.ts      # WhatsApp Cloud API client
+│   ├── http-server.ts    # Webhook + OAuth callback server
+│   └── on-message.ts     # Message handling + agentic loop
 └── handlers/
     ├── registry.ts       # Tool executor registry
     ├── types.ts          # Executor types
-    ├── create-event.ts   # Calendar: create event
-    ├── list-events.ts    # Calendar: list events
-    ├── create-doc.ts     # Docs: create document
-    ├── read-doc.ts       # Docs: read document
-    ├── append-doc.ts     # Docs: append to document
-    ├── search-docs.ts    # Docs: search documents
-    └── fetch-url.ts      # Web: fetch URL content
+    ├── calendar/         # Calendar tools
+    ├── docs/             # Docs tools
+    └── web/              # Web fetch tool
 ```
 
 ## Scripts
