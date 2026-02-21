@@ -1,4 +1,3 @@
-import type pkg from 'whatsapp-web.js';
 import { chat, extractToolUse, extractText } from '../claude/client';
 import { conversationStore } from '../claude/conversation-store';
 import { EXECUTORS } from '../handlers/registry';
@@ -9,20 +8,23 @@ import { createGoogleClients } from '../google/auth';
 const MAX_TOOL_CALLS = 10;
 const PORT = parseInt(process.env.PORT || '3001', 10);
 
+export interface CloudMessage {
+  from: string;
+  body: string;
+}
+
 export async function onMessage(
-  message: pkg.Message,
+  message: CloudMessage,
   sendMessage: (chatId: string, text: string) => Promise<unknown>
 ): Promise<void> {
-  if (message.from.includes('@g.us')) return;
   if (!message.body.startsWith(config.triggerPrefix)) return;
 
-  const chatId = message.id.remote;
+  const chatId = message.from;
   const userText = message.body.slice(config.triggerPrefix.length);
 
   const refreshToken = getRefreshToken(chatId);
   if (!refreshToken) {
-    const phone = chatId.replace('@c.us', '');
-    const authUrl = `http://localhost:${PORT}/auth?phone=${encodeURIComponent(phone)}`;
+    const authUrl = `http://localhost:${PORT}/auth?phone=${encodeURIComponent(chatId)}`;
     await sendMessage(chatId, `Please authenticate your Google account first:\n${authUrl}`);
     return;
   }
