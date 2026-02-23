@@ -15,6 +15,9 @@ import * as searchDocs from './docs/search-docs';
 // Web handlers
 import * as fetchUrl from './web/fetch-url';
 
+// WhatsApp handlers
+import * as sendListMessage from './whatsapp/send-list-message';
+
 const handlers = [
   createEvent,
   listEvents,
@@ -24,6 +27,7 @@ const handlers = [
   replaceDoc,
   searchDocs,
   fetchUrl,
+  sendListMessage,
 ];
 
 export const TOOLS: Tool[] = handlers.map(h => h.tool);
