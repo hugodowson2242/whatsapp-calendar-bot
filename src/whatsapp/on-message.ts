@@ -85,7 +85,7 @@ export async function onMessage(
         }]
       });
 
-      if (result.userMessage) {
+      if (result.userMessage || result.done) {
         break;
       }
     }

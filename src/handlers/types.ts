@@ -18,6 +18,7 @@ export interface ExecutorResult {
   data?: unknown;
   error?: string;
   userMessage?: string;
+  done?: boolean;
 }
 
 export type Executor = (ctx: ExecutorContext) => Promise<ExecutorResult>;
