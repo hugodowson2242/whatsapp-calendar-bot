@@ -4,6 +4,7 @@ import { EXECUTORS } from '../handlers/registry';
 import { getRefreshToken, clearRefreshToken } from '../google/user-store';
 import { createGoogleClients } from '../google/auth';
 import { isInvalidGrantError } from '../errors';
+import { sendTypingIndicator } from './cloud-api';
 
 const MAX_TOOL_CALLS = 10;
 
@@ -22,6 +23,7 @@ function getAuthUrl(phone: string): string {
 export interface CloudMessage {
   from: string;
   body: string;
+  id: string;
 }
 
 export async function onMessage(
@@ -38,7 +40,7 @@ export async function onMessage(
 
   try {
     await prev;
-    await handleMessage(chatId, message.body, sendMessage);
+    await handleMessage(chatId, message.body, message.id, sendMessage);
   } finally {
     releaseLock();
     if (chatLocks.get(chatId) === curr) {
@@ -50,6 +52,7 @@ export async function onMessage(
 async function handleMessage(
   chatId: string,
   userText: string,
+  messageId: string,
   sendMessage: (chatId: string, text: string) => Promise<unknown>
 ): Promise<void> {
   const refreshToken = getRefreshToken(chatId);
@@ -57,6 +60,8 @@ async function handleMessage(
     await sendMessage(chatId, `Please authenticate your Google account first:\n${getAuthUrl(chatId)}`);
     return;
   }
+
+  sendTypingIndicator(chatId, messageId).catch(console.error);
 
   const google = createGoogleClients(refreshToken);
 

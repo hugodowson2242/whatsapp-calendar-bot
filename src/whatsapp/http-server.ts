@@ -62,7 +62,7 @@ function handleWebhookMessage(req: http.IncomingMessage, res: http.ServerRespons
       for (const msg of messages) {
         if (msg.type !== 'text') continue;
         onMessage(
-          { from: msg.from, body: msg.text.body },
+          { from: msg.from, body: msg.text.body, id: msg.id },
           sendWhatsAppMessage
         ).catch(err => console.error('onMessage error:', err));
       }
