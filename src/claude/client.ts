@@ -50,16 +50,10 @@ export async function chat(messages: MessageParam[]): Promise<Message> {
   });
 }
 
-export function extractToolUse(response: Message): ToolUseResult | null {
-  const toolUseBlock = response.content.find(block => block.type === 'tool_use');
-  if (toolUseBlock && toolUseBlock.type === 'tool_use') {
-    return {
-      id: toolUseBlock.id,
-      name: toolUseBlock.name,
-      input: toolUseBlock.input
-    };
-  }
-  return null;
+export function extractAllToolUses(response: Message): ToolUseResult[] {
+  return response.content
+    .filter((block): block is Extract<typeof block, { type: 'tool_use' }> => block.type === 'tool_use')
+    .map(block => ({ id: block.id, name: block.name, input: block.input }));
 }
 
 export function extractText(response: Message): string {
