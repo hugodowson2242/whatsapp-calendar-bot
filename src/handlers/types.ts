@@ -11,6 +11,7 @@ export interface ExecutorContext {
   toolUse: ToolUse;
   chatId: string;
   google: GoogleClients;
+  invocationId: string;
 }
 
 export interface ExecutorResult {
