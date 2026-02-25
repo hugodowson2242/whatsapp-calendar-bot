@@ -18,6 +18,12 @@ import * as fetchUrl from './web/fetch-url';
 // WhatsApp handlers
 import * as sendListMessage from './whatsapp/send-list-message';
 
+// Gmail handlers
+import * as searchEmails from './gmail/search-emails';
+import * as draftEmail from './gmail/draft-email';
+import * as sendEmail from './gmail/send-email';
+import * as cancelEmail from './gmail/cancel-email';
+
 const handlers = [
   createEvent,
   listEvents,
@@ -28,6 +34,10 @@ const handlers = [
   searchDocs,
   fetchUrl,
   sendListMessage,
+  searchEmails,
+  draftEmail,
+  sendEmail,
+  cancelEmail,
 ];
 
 export const TOOLS: Tool[] = handlers.map(h => h.tool);

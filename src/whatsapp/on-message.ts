@@ -1,9 +1,10 @@
+import crypto from 'crypto';
 import { chat, extractAllToolUses, extractText } from '../claude/client';
 import { conversationStore } from '../claude/conversation-store';
 import { EXECUTORS } from '../handlers/registry';
 import { getRefreshToken, clearRefreshToken } from '../google/user-store';
 import { createGoogleClients } from '../google/auth';
-import { isInvalidGrantError } from '../errors';
+import { isInvalidGrantError, isInsufficientPermissionsError } from '../errors';
 import { sendTypingIndicator } from './cloud-api';
 
 const MAX_TOOL_CALLS = 10;
@@ -64,6 +65,7 @@ async function handleMessage(
   sendTypingIndicator(chatId, messageId).catch(console.error);
 
   const google = createGoogleClients(refreshToken);
+  const invocationId = crypto.randomUUID();
 
   try {
     conversationStore.append(chatId, { role: 'user', content: userText });
@@ -97,7 +99,7 @@ async function handleMessage(
       // Execute all tools in parallel
       const results = await Promise.all(
         toolUses.map(toolUse =>
-          EXECUTORS[toolUse.name]({ toolUse, chatId, google })
+          EXECUTORS[toolUse.name]({ toolUse, chatId, google, invocationId })
             .catch((err): { success: false; error: string; data?: undefined; userMessage?: undefined; done?: undefined } => ({ success: false, error: String(err) }))
         )
       );
@@ -145,6 +147,11 @@ async function handleMessage(
     if (isInvalidGrantError(error)) {
       clearRefreshToken(chatId);
       await sendMessage(chatId, `Your Google authentication has expired. Please re-authenticate:\n${getAuthUrl(chatId)}`);
+      return;
+    }
+
+    if (isInsufficientPermissionsError(error)) {
+      await sendMessage(chatId, `I need additional permissions. Please re-authorize:\n${getAuthUrl(chatId)}`);
       return;
     }
 
