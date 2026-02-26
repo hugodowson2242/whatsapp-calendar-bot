@@ -100,7 +100,10 @@ async function handleMessage(
       const results = await Promise.all(
         toolUses.map(toolUse =>
           EXECUTORS[toolUse.name]({ toolUse, chatId, google, invocationId })
-            .catch((err): { success: false; error: string; data?: undefined; userMessage?: undefined; done?: undefined } => ({ success: false, error: String(err) }))
+            .catch((err) => {
+              if (isInvalidGrantError(err) || isInsufficientPermissionsError(err)) throw err;
+              return { success: false as const, error: String(err), data: undefined, userMessage: undefined, done: undefined };
+            })
         )
       );
 
@@ -151,6 +154,7 @@ async function handleMessage(
     }
 
     if (isInsufficientPermissionsError(error)) {
+      clearRefreshToken(chatId);
       await sendMessage(chatId, `I need additional permissions. Please re-authorize:\n${getAuthUrl(chatId)}`);
       return;
     }
