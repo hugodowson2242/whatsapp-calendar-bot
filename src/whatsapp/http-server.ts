@@ -2,6 +2,7 @@ import http from 'http';
 import { generateAuthUrl, exchangeCodeForToken } from '../google/oauth-flow';
 import { onMessage } from './on-message';
 import { sendWhatsAppMessage } from './cloud-api';
+import { getPendingMessage, clearPendingMessage } from './pending-messages';
 
 const PORT = parseInt(process.env.PORT || '3000', 10);
 
@@ -107,6 +108,16 @@ async function handleAuthCallback(url: URL, res: http.ServerResponse): Promise<v
         </body>
       </html>
     `);
+
+    const pending = getPendingMessage(state);
+    if (pending) {
+      clearPendingMessage(state);
+      await sendWhatsAppMessage(state, 'Google account connected! Processing your message...');
+      onMessage({ from: state, body: pending, id: `replay-${Date.now()}` }, sendWhatsAppMessage)
+        .catch(err => console.error('Pending message replay error:', err));
+    } else {
+      await sendWhatsAppMessage(state, 'Google account connected!');
+    }
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     console.error('OAuth callback error:', error);
