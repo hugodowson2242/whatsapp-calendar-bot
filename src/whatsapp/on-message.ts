@@ -6,6 +6,7 @@ import { getRefreshToken, clearRefreshToken } from '../google/user-store';
 import { createGoogleClients } from '../google/auth';
 import { isInvalidGrantError, isInsufficientPermissionsError } from '../errors';
 import { sendTypingIndicator } from './cloud-api';
+import { setPendingMessage } from './pending-messages';
 
 const MAX_TOOL_CALLS = 10;
 
@@ -58,6 +59,7 @@ async function handleMessage(
 ): Promise<void> {
   const refreshToken = getRefreshToken(chatId);
   if (!refreshToken) {
+    setPendingMessage(chatId, userText);
     await sendMessage(chatId, `Please authenticate your Google account first:\n${getAuthUrl(chatId)}`);
     return;
   }
