@@ -24,6 +24,9 @@ import * as draftEmail from './gmail/draft-email';
 import * as sendEmail from './gmail/send-email';
 import * as cancelEmail from './gmail/cancel-email';
 
+// Memory handlers
+import * as updateMemory from './memory/update-memory';
+
 const handlers = [
   createEvent,
   listEvents,
@@ -38,6 +41,7 @@ const handlers = [
   draftEmail,
   sendEmail,
   cancelEmail,
+  updateMemory,
 ];
 
 export const TOOLS: Tool[] = handlers.map(h => h.tool);

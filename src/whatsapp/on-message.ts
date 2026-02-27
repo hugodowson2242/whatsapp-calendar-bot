@@ -1,8 +1,9 @@
 import crypto from 'crypto';
-import { chat, extractAllToolUses, extractText } from '../claude/client';
+import { chat, buildSystemPrompt, extractAllToolUses, extractText } from '../claude/client';
 import { conversationStore } from '../claude/conversation-store';
 import { EXECUTORS } from '../handlers/registry';
 import { getRefreshToken, clearRefreshToken } from '../google/user-store';
+import { getUserMemory } from '../handlers/memory/store';
 import { createGoogleClients } from '../google/auth';
 import { isInvalidGrantError, isInsufficientPermissionsError } from '../errors';
 import { sendTypingIndicator } from './cloud-api';
@@ -68,6 +69,8 @@ async function handleMessage(
 
   const google = createGoogleClients(refreshToken);
   const invocationId = crypto.randomUUID();
+  const userMemory = getUserMemory(chatId);
+  const systemPrompt = buildSystemPrompt(userMemory);
 
   try {
     conversationStore.append(chatId, { role: 'user', content: userText });
@@ -76,7 +79,7 @@ async function handleMessage(
 
     while (toolCalls < MAX_TOOL_CALLS) {
       const history = conversationStore.get(chatId);
-      const response = await chat(history);
+      const response = await chat(history, systemPrompt);
       const toolUses = extractAllToolUses(response);
 
       // No tool calls — final text response
