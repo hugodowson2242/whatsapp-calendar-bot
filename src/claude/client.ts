@@ -4,7 +4,7 @@ import { TOOLS } from '../handlers/registry';
 
 const client = new Anthropic();
 
-const SYSTEM_PROMPT = `You are a personal assistant that helps users manage Google Calendar, Google Docs, and fetch web content through WhatsApp.
+const BASE_SYSTEM_PROMPT = `You are a personal assistant that helps users manage Google Calendar, Google Docs, and fetch web content through WhatsApp.
 
 Your capabilities:
 - Calendar: Create events, query upcoming events
@@ -37,10 +37,23 @@ For fetching URLs:
 - HTML content will be converted to plain text
 - Use this when users ask about web content or provide URLs
 
+MEMORY RULES:
+- You have a persistent memory for each user, shown below under USER MEMORY (if any).
+- When a user says "remember that...", "my name is...", "I prefer...", or shares any persistent personal fact, call update_memory.
+- When updating, include ALL existing facts you want to keep plus the new ones. This is a full replacement.
+- Use concise bullet points. Keep it under 2000 characters.
+- Do NOT store transient info (today's meeting details, one-time requests).
+- Confirm to the user what you remembered.
+
 Today's date is: ${new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
 Current time: ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
 
 Be concise in your responses. This is WhatsApp, not email.`;
+
+export function buildSystemPrompt(userMemory: string): string {
+  if (!userMemory.trim()) return BASE_SYSTEM_PROMPT;
+  return `${BASE_SYSTEM_PROMPT}\n\nUSER MEMORY (persistent facts about this user — use these to personalize your responses):\n${userMemory}`;
+}
 
 export interface ToolUseResult {
   id: string;
@@ -48,11 +61,11 @@ export interface ToolUseResult {
   input: unknown;
 }
 
-export async function chat(messages: MessageParam[]): Promise<Message> {
+export async function chat(messages: MessageParam[], systemPrompt: string): Promise<Message> {
   return client.messages.create({
     model: 'claude-sonnet-4-20250514',
     max_tokens: 1024,
-    system: SYSTEM_PROMPT,
+    system: systemPrompt,
     tools: TOOLS,
     messages
   });
